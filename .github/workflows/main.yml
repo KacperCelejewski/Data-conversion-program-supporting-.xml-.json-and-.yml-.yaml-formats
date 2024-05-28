@@ -1,0 +1,33 @@
+name: Workflow
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "0 0 * * 0" 
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    runs-on: windows-latest 
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x' # Możesz zmienić wersję Pythona, jeśli jest wymagane
+
+      - name: Install pip
+        run: |
+          python -m ensurepip
+          python -m pip install --upgrade pip
+
+      - name: Install Resources
+        run: .\installResources.sh

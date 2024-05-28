@@ -31,11 +31,12 @@ jobs:
 
       - name: Run installResources.sh
         run: |
-          if [ -f installResources.sh ]; then
-            chmod +x installResources.sh
+          if [ -f Scripts/installResources.sh ]; then
+            chmod +x Scripts/installResources.sh
             ./Scripts/installResources.sh
           else
             echo "installResources.sh not found"
             exit 1
           fi
         shell: bash
+

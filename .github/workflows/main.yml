@@ -29,5 +29,13 @@ jobs:
           python -m ensurepip
           python -m pip install --upgrade pip
 
-      - name: Install Resources
-        run: .\installResources.sh
+      - name: Run installResources.sh
+        run: |
+          if [ -f installResources.sh ]; then
+            chmod +x installResources.sh
+            ./installResources.sh
+          else
+            echo "installResources.sh not found"
+            exit 1
+          fi
+        shell: bash

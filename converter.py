@@ -1,65 +1,68 @@
 import json
 import yaml
 import xml.etree.ElementTree as ET
-import argparse
 
 
-def read_file(file_path):
-    with open(file_path, "r") as file:
-        return file.read()
+class Converter:
+    def convert(self, input_path, output_path):
+        input_format = input_path.split(".")[-1].lower()
 
+        if input_format == "json":
+            data = self.read_json(input_path)
+        elif input_format in ["yml", "yaml"]:
+            data = self.read_yaml(input_path)
+        elif input_format == "xml":
+            data = self.read_xml(input_path)
+        else:
+            raise ValueError("Unsupported input format")
 
-def write_file(file_path, data):
-    with open(file_path, "w") as file:
-        file.write(data)
+        output_format = output_path.split(".")[-1].lower()
 
+        if output_format == "json":
+            self.write_json(data, output_path)
+        elif output_format in ["yml", "yaml"]:
+            self.write_yaml(data, output_path)
+        elif output_format == "xml":
+            self.write_xml(data, output_path)
+        else:
+            raise ValueError("Unsupported output format")
 
-def convert_to_dict(data, input_format):
-    if input_format == "json":
-        return json.loads(data)
-    elif input_format in ["yml", "yaml"]:
-        return yaml.safe_load(data)
-    elif input_format == "xml":
-        root = ET.fromstring(data)
-        return {root.tag: {child.tag: child.text for child in root}}
+    def read_json(self, file_path):
+        with open(file_path, "r") as file:
+            return json.load(file)
 
+    def read_yaml(self, file_path):
+        with open(file_path, "r") as file:
+            return yaml.safe_load(file)
 
-def convert_from_dict(data_dict, output_format):
-    if output_format == "json":
-        return json.dumps(data_dict, indent=2)
-    elif output_format in ["yml", "yaml"]:
-        return yaml.dump(data_dict, default_flow_style=False)
-    elif output_format == "xml":
-        root_tag = list(data_dict.keys())[0]
-        root = ET.Element(root_tag)
-        for key, value in data_dict[root_tag].items():
-            child = ET.SubElement(root, key)
-            child.text = value
-        return ET.tostring(root, encoding="unicode")
+    def read_xml(self, file_path):
+        tree = ET.parse(file_path)
+        root = tree.getroot()
+        data = []
+        for child in root:
+            item = {}
+            for subchild in child:
+                item[subchild.tag] = subchild.text
+            data.append(item)
+        return data
 
+    def write_json(self, data, file_path):
+        with open(file_path, "w") as file:
+            json.dump(data, file, indent=2)
 
-def get_file_format(file_path):
-    return file_path.split(".")[-1].lower()
+    def write_yaml(self, data, file_path):
+        with open(file_path, "w") as file:
+            yaml.dump(data, file, default_flow_style=False)
 
+    def write_xml(self, data, file_path):
+        root_name = "data"
+        root = ET.Element(root_name)
 
-def convert_file(input_path, output_path):
-    input_format = get_file_format(input_path)
-    output_format = get_file_format(output_path)
+        for item in data:
+            child = ET.SubElement(root, "item")
+            for key, value in item.items():
+                subchild = ET.SubElement(child, key)
+                subchild.text = value
 
-    data = read_file(input_path)
-    data_dict = convert_to_dict(data, input_format)
-    converted_data = convert_from_dict(data_dict, output_format)
-
-    write_file(output_path, converted_data)
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Convert data between XML, JSON, and YAML formats."
-    )
-    parser.add_argument("input_file", help="Path to the input file.")
-    parser.add_argument("output_file", help="Path to the output file.")
-
-    args = parser.parse_args()
-
-    convert_file(args.input_file, args.output_file)
+        tree = ET.ElementTree(root)
+        tree.write(file_path)

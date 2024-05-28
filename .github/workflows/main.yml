@@ -33,7 +33,7 @@ jobs:
         run: |
           if [ -f installResources.sh ]; then
             chmod +x installResources.sh
-            ./installResources.sh
+            ./Scripts/installResources.sh
           else
             echo "installResources.sh not found"
             exit 1
